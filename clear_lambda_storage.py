@@ -3,7 +3,7 @@ Removes old versions of Lambda functions.
 """
 from __future__ import print_function
 import argparse
-import boto3
+import boto3 
 try:
     import queue
 except ImportError:
@@ -13,15 +13,15 @@ from botocore.exceptions import ClientError
 
 
 LATEST = '$LATEST'
-
+REGION='sa-east-1'
 
 def list_available_lambda_regions():
     """
     Enumerates list of all Lambda regions
     :return: list of regions
     """
-    session = Session()
-    return session.get_available_regions('lambda')
+    
+    return [REGION]
 
 
 def init_boto_client(client_name, region, args):
@@ -32,18 +32,13 @@ def init_boto_client(client_name, region, args):
     :param args: arguments
     :return: Client
     """
-    if args.token_key_id and args.token_secret:
+    if region == "sa-east-1":
         boto_client = boto3.client(
             client_name,
-            aws_access_key_id=args.token_key_id,
-            aws_secret_access_key=args.token_secret,
+            aws_access_key_id=YOUR_ACCESS_KEY,
+            aws_secret_access_key=YOUR_SECRET_ACCESS_KEY,
             region_name=region
         )
-    elif args.profile:
-        session = boto3.session.Session(profile_name=args.profile)
-        boto_client = session.client(client_name, region_name=region)
-    else:
-        boto_client = boto3.client(client_name, region_name=region)
 
     return boto_client
 
@@ -58,6 +53,7 @@ def lambda_function_generator(lambda_client):
     try:
         response = lambda_client.list_functions()
     except Exception as exception:
+        console.log(exception)
         print('Could not scan region')
         return iter([])
 
